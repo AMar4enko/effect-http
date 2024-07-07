@@ -41,13 +41,17 @@ export const create = (
   parseOptions?: AST.ParseOptions
 ): ServerRequestParser =>
   make(
-    Effect.all({
-      body: parseBody(endpoint, parseOptions),
-      query: parseQuery(endpoint, parseOptions),
-      path: parsePath(endpoint, parseOptions),
-      headers: parseHeaders(endpoint, parseOptions),
-      security: parseSecurity(endpoint)
-    }) as any
+    parseSecurity(endpoint).pipe(
+      Effect.andThen((security) => 
+        Effect.all({
+          body: parseBody(endpoint, parseOptions),
+          query: parseQuery(endpoint, parseOptions),
+          path: parsePath(endpoint, parseOptions),
+          headers: parseHeaders(endpoint, parseOptions),
+          security: Effect.succeed(security)
+        })
+      )
+    ) as any
   )
 
 /** @internal */
